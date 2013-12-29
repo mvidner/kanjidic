@@ -9,33 +9,37 @@ class Kanji
 #    pp node
     @node = node
 
-    @literal = get("literal")
+    @literal = value "literal" 
 
-    @ucs = get("codepoint/cp_value[@cp_type = 'ucs']").to_i(16)
-    @jis208 = get("codepoint/cp_value[@cp_type = 'jis208']")
+    @ucs = value("codepoint/cp_value[@cp_type = 'ucs']").to_i(16)
+    @jis208 = value "codepoint/cp_value[@cp_type = 'jis208']"
+    @jis212 = value "codepoint/cp_value[@cp_type = 'jis212']"
+    @jis213 = value "codepoint/cp_value[@cp_type = 'jis213']"
 
-    @radical = get("radical/rad_value[@rad_type ='classical']").to_i
-    @radical_nelson = get("radical/rad_value[@rad_type ='nelson_c']").to_i
+    @radical = ivalue "radical/rad_value[@rad_type = 'classical']"
+    @radical_nelson = ivalue "radical/rad_value[@rad_type = 'nelson_c']"
 
-    @grade = get("misc/grade").to_i
+    @grade = ivalue "misc/grade"
     # TODO stroke_counts: find by any
-    @stroke_count = get("misc/stroke_count").to_i
+    @stroke_counts = ivalues "misc/stroke_count"
     # TODO variants, how to represent
-    @freq = get("misc/freq").to_i
+    @freq = ivalue "misc/freq"
     # TODO multiple
-    @rad_name = get("misc/rad_name")
-    @jlpt = get("misc/jlpt").to_i
+    @rad_names = values "misc/rad_name"
+    @jlpt = ivalue "misc/jlpt"
 
-    @heisig = get("dic_number/dic_ref[@dr_type = 'heisig']").to_i
+    @heisig = ivalue "dic_number/dic_ref[@dr_type = 'heisig']"
 
-    @skip = get("query_code/q_code[@qc_type = 'skip']")
+    @skip = value "query_code/q_code[@qc_type = 'skip']"
     # also misclassifications
 
-    # TODO many
-    @pinyin = get("reading_meaning/rmgroup/reading[@r_type = 'pinyin']")
-    @on = get("reading_meaning/rmgroup/reading[@r_type = 'ja_on']")
-    @kun = get("reading_meaning/rmgroup/reading[@r_type = 'ja_kun']")
-    @meaning = get("reading_meaning/rmgroup/meaning")
+    # TODO many rmgroups
+    @pinyins  = values "reading_meaning/rmgroup/reading[@r_type = 'pinyin']"
+    @korean_rs= values "reading_meaning/rmgroup/reading[@r_type = 'korean_r']" 
+    @korean_hs= values "reading_meaning/rmgroup/reading[@r_type = 'korean_h']" 
+    @ons      = values "reading_meaning/rmgroup/reading[@r_type = 'ja_on']" 
+    @kuns     = values "reading_meaning/rmgroup/reading[@r_type = 'ja_kun']"
+    @meanings = values "reading_meaning/rmgroup/meaning[not(@m_lang)]"
 
     # no longer needed
     @node = nil
@@ -44,12 +48,37 @@ class Kanji
   attr_reader :literal
   # integer, unicode code point
   attr_reader :ucs
+  attr_reader :grade
   attr_reader :stroke_count
+  attr_reader :heisig
+  attr_reader :pinyins, :ons, :kuns
+  attr_reader :meanings
+
+  def summary
+    "<%s U+%04X G%d Hg%d %s>" %
+      [literal, ucs, grade||0, heisig||0, meanings.join("/")]
+  end
 
   private
 
-  def get(xpath)
-    @node.xpath(xpath).first.content rescue nil
+  def values(xpath)
+    nodeset = @node.xpath(xpath)
+    nodeset.map &:content
+  end
+
+  def ivalues(xpath)
+  end
+
+  def value(xpath)
+    nodeset = @node.xpath(xpath)
+    return nil if nodeset.empty? 
+    nodeset.first.content
+  end
+
+  def ivalue(xpath)
+    v = value(xpath)
+    return nil if v.nil?
+    v.to_i
   end
 end
 
@@ -75,10 +104,11 @@ end
 
 # test
 d = Kanjidic.new
+#d = Kanjidic.new "kanjidic2-sample.xml"
+a = d.all
 
-# puts "number of kanji: #{d.all.size}"
+# h = a.find_all {|k| k.heisig }
+# h.sort_by {|k| [k.grade || 99, k.heisig]}.each {|k| puts k}
+r = a.find_all {|k| k.ons.include? "コク"}
 
-onna = d.find "女"
-
-# puts "onna: %s U+%04X, %d strokes" % [onna.literal, onna.ucs, onna.stroke_count]
-pp onna
+r.each {|k| puts k.summary; pp k}
