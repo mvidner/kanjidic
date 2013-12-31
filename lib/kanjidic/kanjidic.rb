@@ -3,6 +3,14 @@ require "nokogiri"
 
 require_relative "kanji"
 
+class Nokogiri::XML::Node
+  def all_named(name)
+    element_children.find_all do |child|
+      child.name == name
+    end
+  end
+end
+
 class Kanjidic
   DEFAULT_FILENAME = "/usr/share/kanjidic2/kanjidic2.xml"
 
@@ -15,7 +23,8 @@ class Kanjidic
   end
 
   def all
-    @doc.xpath("/kanjidic2/character").map {|node| Kanji.new(node)}
+    # @doc.xpath("/kanjidic2/character").map {|node| Kanji.new(node)}
+    @doc.root.all_named("character").map {|node| Kanji.new(node)}
   end
 
   def find(literal)
