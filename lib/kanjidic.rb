@@ -109,6 +109,23 @@ a = d.all
 
 # h = a.find_all {|k| k.heisig }
 # h.sort_by {|k| [k.grade || 99, k.heisig]}.each {|k| puts k}
-r = a.find_all {|k| k.ons.include? "コク"}
 
-r.each {|k| puts k.summary; pp k}
+#r = a.find_all {|k| k.ons.include? "コク"}
+#r.each {|k| puts k.summary; pp k}
+
+kyouiku = a.find_all {|k| (k.grade||99) <= 6 }
+by_on = {}
+kyouiku.each do |k|
+  k.ons.each do |on|
+    by_on[on] ||= []
+    by_on[on] << k
+  end
+end
+
+by_on.keys.sort.each do |on|
+  puts "<h2>#{on}</h2>"
+  by_on[on].sort_by{|k| k.grade}.each do |k|
+    print "#{k.literal}(#{k.grade||''}) "
+  end
+  puts
+end
