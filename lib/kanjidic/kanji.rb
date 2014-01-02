@@ -66,6 +66,7 @@ class Kanji
     @@attrs.values.each do |a|
       a.reset(self)
     end
+    @ons = []
   end
 
   def start_element(name, attributes = [])
