@@ -6,6 +6,8 @@ require "kanjidic"
 if ARGV[0] == "-s"
   puts "smaller kanjidic"
   d = Kanjidic.new(File.expand_path("../../kanjidic2-sample.xml", __FILE__))
+elsif ARGV[0] == "-l"
+  d = Marshal.load(File.read("/tmp/kanjidic.rbdump"))
 else
   d = Kanjidic.new
 end
@@ -25,4 +27,8 @@ by_on.keys.sort.each do |on|
     print "#{k.literal}(#{k.grade||''}) "
   end
   puts
+end
+
+File.open "/tmp/kanjidic.rbdump.new", "w" do |f|
+  Marshal.dump(d,f)
 end
