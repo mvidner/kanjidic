@@ -31,8 +31,7 @@ class RawKanji
       instance_variable_set("@#{d}", [])
     end
     @@categorized_data.each do |d, attr|
-      hash_of_lists = Hash.new {|h, k| h[k] = [] }
-      instance_variable_set("@#{d}", hash_of_lists)
+      instance_variable_set("@#{d}", {})
     end
   end
 
@@ -66,7 +65,7 @@ class RawKanji
       category_attribute = @@categorized_data[name]
       category = attributes.fetch(category_attribute, "")
       hash = instance_variable_get("@#{name}")
-      @target = hash[category]
+      @target = (hash[category] ||= [])
     else
       @target = nil
     end
@@ -81,4 +80,78 @@ class RawKanji
 
   def end_element(name)
   end
+end
+
+class Kanji
+  def initialize(raw_kanji)
+    @raw = raw_kanji
+  end
+
+  def data(name, group = nil)
+    if group
+      @raw.send(group.to_s)[name.to_s] || []
+    else
+      @raw.send(name.to_s) || []
+    end
+  end
+  private :data
+
+  def self.text(name, group = nil)
+    define_method(name) do
+      data(name, group).first
+    end
+  end
+
+  def self.int(name, group = nil)
+    define_method(name) do
+      data(name, group).first.to_i # nil -> 0
+    end
+  end
+
+  text :literal
+  def ucs
+    @raw.cp_value["ucs"].first.to_i(16)
+  end
+  text :jis208, :cp_value
+  def radical
+    @raw.rad_value["classical"].first.to_i
+  end
+  def grade
+    (@raw.grade.first || "99").to_i
+  end
+  int :stroke_count
+  # :variant?
+  int :freq
+  int :jlpt
+
+  [
+    "nelson_c",
+    "nelson_n",
+    "halpern_njecd",
+    "halpern_kkd",
+    "halpern_kkld",
+    "halpern_kkld_2ed",
+    "heisig",
+    "heisig6",
+    "gakken",
+    "oneill_names",
+    "oneill_kk",
+    "moro",
+    "henshall",
+    "sh_kk",
+    "jf_cards",
+    "tutt_cards",
+    "kanji_in_context",
+    "kodansha_compact",
+    "maniette"
+  ].each do |dict|
+    int dict.to_sym, :dic_ref
+  end
+
+  text :skip,        :q_code
+  text :sh_desc,     :q_code
+  text :four_corner, :q_code
+  text :deroo,       :q_code
+  
+  def ja_on;    @raw.reading["ja_on"] || [];  end
 end
