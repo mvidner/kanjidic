@@ -58,6 +58,7 @@ class RawKanji
   categorized_data :meaning, :@m_lang
 
   def start_element(name, attributes)
+    @string = ""
     if @@data.include? name
       @target = instance_variable_get("@#{name}")
     elsif @@categorized_data.has_key? name
@@ -73,12 +74,16 @@ class RawKanji
 
   def characters(string)
     if @target
-      @target << string
+      @string << string
     end
-    @target = nil
   end
 
   def end_element(name)
+    if @target
+      @target << @string
+    end
+    @target = nil
+    @string = ""
   end
 end
 
