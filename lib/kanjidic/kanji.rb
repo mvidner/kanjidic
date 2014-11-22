@@ -153,5 +153,6 @@ class Kanji
   text :four_corner, :q_code
   text :deroo,       :q_code
   
+  def ja_kun;   @raw.reading["ja_kun"] || [];  end
   def ja_on;    @raw.reading["ja_on"] || [];  end
 end

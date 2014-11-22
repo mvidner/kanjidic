@@ -6,6 +6,8 @@ class Kanjidic
   def initialize(filename = DEFAULT_FILENAME)
     parser = Kanjidic::Parser.new(filename)
     @raw_kanji = parser.all
+
+# self = Marshal.load (filename - xml + rbdump) if that is newer
   end
 
   def all
