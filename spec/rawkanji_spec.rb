@@ -6,7 +6,7 @@ require "kanjidic/parser"
 describe Kanjidic::Parser do
   it "works" do
     p = Kanjidic::Parser.new(File.expand_path("../data/sample.xml", __FILE__))
-    expect(p.all).to have_exactly(3).items
+    expect(p.all.size).to eq 3
 
     k = p.all.first
     expect(k.literal).to                 eq ["亜"]
